@@ -16,7 +16,7 @@ grafana:
           - grafana.meilink.net
 
   # Set resources.
-  resources: {}
+  resources:
     limits:
       cpu: 100m
       memory: 128Mi
