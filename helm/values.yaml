@@ -1,0 +1,57 @@
+grafana:
+  # Enable ingress.
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: cilium
+    labels: {}
+    path: /
+    pathType: Prefix
+    hosts:
+      - grafana.meilink.net
+    extraPaths: []
+    tls:
+      - secretName: meilinknet
+        hosts:
+          - grafana.meilink.net
+
+  # Set resources.
+  resources: {}
+    limits:
+      cpu: 100m
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+  # Enable persistent storage for Grafana.
+  persistence:
+    enabled: true
+
+  # Set adminpassword to secret grafana-admin-user.
+  admin:
+    existingSecret: "grafana-admin-user"
+    passwordKey: admin-password
+    userKey: admin-user
+
+  # Define datasources.
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - name: Prometheus
+        type: prometheus
+        url: http://prometheus-server
+        isDefault: true
+      - name: Loki
+        type: loki
+        url: http://loki:3100
+
+  # Enable dashboards side car for Grafana.
+  # This allows loading dashboards into Grafana using configMaps.
+  # The same is true for loading datasources via configMaps.
+  sidecar:
+    dashboards:
+      enabled: true
+    datasources:
+      enabled: true
