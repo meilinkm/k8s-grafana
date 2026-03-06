@@ -46,6 +46,7 @@ grafana:
       - name: Loki
         type: loki
         url: http://loki:3100
+        orgId: 1
 
   # Enable dashboards side car for Grafana.
   # This allows loading dashboards into Grafana using configMaps.
