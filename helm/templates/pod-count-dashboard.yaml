@@ -33,7 +33,7 @@ data:
         {
           "datasource": {
             "type": "prometheus",
-            "uid": "prometheus"
+            "uid": "Prometheus"
           },
           "fieldConfig": {
             "defaults": {
@@ -114,7 +114,7 @@ data:
             {
               "datasource": {
                 "type": "prometheus",
-                "uid": "prometheus"
+                "uid": "{Prometheus"
               },
               "editorMode": "code",
               "expr": "sum(kubelet_running_pods{job=\"kubernetes-nodes\"})",
