@@ -50,7 +50,7 @@ metadata:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-{{ tpl ( .Files.Get "files/dashboards/$NAME.json" ) . | indent 4 }}
+{{ .Files.Get "files/dashboards/$NAME.json" | indent 4 }}
 EOF
 
 echo "Cleaning up temporary files..."
