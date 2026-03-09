@@ -45,3 +45,9 @@ Test deploy the helm chart - from the helm folder:
 ```Bash
 helm -n monitoring install grafana . -f values.yaml
 ```
+There is a helper script that can generate configMaps for Grafana dashboards. It takes the id of an existing dashboard (on https://grafana.com/grafana/dashboards/), and you specify the datasource to be used as well as the name of configmap. E.g.:
+```Bash
+./make-dashboard-cm.sh 15761 Prometheus dashboard-kubernetes-api-server
+./make-dashboard-cm.sh 21742 Prometheus dashboard-kube-state-metrics-v2
+```
+Note that (by far) not all dashboards on the Grafana website are suitable for the environment; it greatly depends on the version of several software items (Kubernetes, Grafana, kube-state-metrics, Promtheus, etcetcetera), if a dashboard will work correctly or not. It is therefore advised to try out a dashboard first, before creating a configMap for it.
