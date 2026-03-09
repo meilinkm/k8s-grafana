@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-dashboard-kubernetes-kubelet
-  labels:
-    grafana_dashboard: "1"
-data:
-  dashboard.json: |
-{{ .Files.Get "files/dashboards/dashboard-kubernetes-kubelet.json" | indent 4 }}
