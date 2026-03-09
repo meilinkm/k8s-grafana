@@ -19,7 +19,8 @@ fi
 
 TMP_JSON="dashboard-$ID.json"
 FIXED_JSON="dashboard-$ID-fixed.json"
-CM_FILE="helm/templates/$CM_NAME.yaml"
+ESCAPED_JSON="dashboard-$ID-escaped.json"
+CM_FILE="$CM_NAME.yaml"
 
 echo "Downloading dashboard $ID..."
 curl -s -L "https://grafana.com/api/dashboards/$ID/revisions/latest/download" -o "$TMP_JSON"
@@ -35,8 +36,13 @@ jq '
   )
 ' "$TMP_JSON" > "$FIXED_JSON"
 
+echo "Escaping Helm template delimiters..."
+sed 's/{{/{{"{{"}}/g' "$FIXED_JSON" > "$ESCAPED_JSON.tmp"
+sed 's/}}/{{"}}"}}/g' "$ESCAPED_JSON.tmp" > "$ESCAPED_JSON"
+rm -f "$ESCAPED_JSON.tmp"
+
 echo "Generating ConfigMap $CM_FILE..."
-cat > "$CM_FILE" <<EOF
+cat > "helm/templates/$CM_FILE" <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -45,12 +51,10 @@ metadata:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-    {{\`
-$(sed 's/^/      /' "$FIXED_JSON")
-    \`}}
+$(sed 's/^/    /' "$ESCAPED_JSON")
 EOF
 
 echo "Cleaning up temporary files..."
-rm -f "$TMP_JSON" "$FIXED_JSON"
+rm -f "$TMP_JSON" "$FIXED_JSON" "${ESCAPED_JSON}"
 
 echo "Done. ConfigMap written to $CM_FILE"
