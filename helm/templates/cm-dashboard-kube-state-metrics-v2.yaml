@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-dashboard-kube-state-metrics-v2
+  labels:
+    grafana_dashboard: "1"
+data:
+  dashboard.json: |
+{{ tpl ( .Files.Get "templates/dashboards/dashboard-kube-state-metrics-v2.json" ) . | indent 4 }}

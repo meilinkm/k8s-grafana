@@ -10,18 +10,22 @@ set -e
 
 ID="$1"
 DS_NAME="$2"
-CM_NAME="$3"
+NAME="$3"
 
-if [ -z "$ID" ] || [ -z "$DS_NAME" ] || [ -z "$CM_NAME" ]; then
-  echo "Usage: $0 <dashboard-id> <datasource-name> <configmap-name>"
+if [ -z "$ID" ] || [ -z "$DS_NAME" ] || [ -z "$NAME" ]; then
+  echo "Usage: $0 <dashboard-id> <datasource-name> <name>"
   exit 1
 fi
 
+# Output directories (two levels down)
+JSON_DIR="helm/templates/dashboards"
+CM_DIR="helm/templates"
+
+mkdir -p "$JSON_DIR"
+
 TMP_JSON="dashboard-$ID.json"
-FIXED_JSON="dashboard-$ID-fixed.json"
-PLACE_JSON="dashboard-$ID-placeholders.json"
-ESCAPED_JSON="dashboard-$ID-escaped.json"
-CM_FILE="$CM_NAME.yaml"
+FINAL_JSON="$JSON_DIR/$NAME.json"
+CM_FILE="$CM_DIR/cm-$NAME.yaml"
 
 echo "Downloading dashboard $ID..."
 curl -s -L "https://grafana.com/api/dashboards/$ID/revisions/latest/download" -o "$TMP_JSON"
@@ -35,30 +39,24 @@ jq '
     else .
     end
   )
-' "$TMP_JSON" > "$FIXED_JSON"
-
-echo "Replacing Grafana template delimiters with placeholders..."
-# Step 1: replace {{ and }} with neutral placeholders
-sed 's/{{/__GRAFANA_LBRACE__/g; s/}}/__GRAFANA_RBRACE__/g' "$FIXED_JSON" > "$PLACE_JSON"
-
-echo "Converting placeholders to Helm-safe expressions..."
-# Step 2: turn placeholders into Helm expressions that output literal {{ and }}
-sed 's/__GRAFANA_LBRACE__/{{ "{{" }}/g; s/__GRAFANA_RBRACE__/{{ "}}" }}/g' "$PLACE_JSON" > "$ESCAPED_JSON"
+' "$TMP_JSON" > "$FINAL_JSON"
 
 echo "Generating ConfigMap $CM_FILE..."
-cat > "helm/templates/$CM_FILE" <<EOF
+cat > "$CM_FILE" <<EOF
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: $CM_NAME
+  name: {{ .Release.Name }}-$NAME
   labels:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-$(sed 's/^/    /' "$ESCAPED_JSON")
+{{ tpl ( .Files.Get "templates/dashboards/$NAME.json" ) . | indent 4 }}
 EOF
 
 echo "Cleaning up temporary files..."
-rm -f "$TMP_JSON" "$FIXED_JSON" "$PLACE_JSON" "$ESCAPED_JSON"
+rm -f "$TMP_JSON"
 
-echo "Done. ConfigMap written to helm/templates/$CM_FILE"
+echo "Done. Created:"
+echo " - $FINAL_JSON"
+echo " - $CM_FILE"
