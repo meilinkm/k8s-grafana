@@ -45,7 +45,9 @@ metadata:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-$(sed 's/^/    /' "$FIXED_JSON")
+    {{\`
+$(sed 's/^/      /' "$FIXED_JSON")
+    \`}}
 EOF
 
 echo "Cleaning up temporary files..."
