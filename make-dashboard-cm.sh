@@ -19,6 +19,7 @@ fi
 
 TMP_JSON="dashboard-$ID.json"
 FIXED_JSON="dashboard-$ID-fixed.json"
+PLACE_JSON="dashboard-$ID-placeholders.json"
 ESCAPED_JSON="dashboard-$ID-escaped.json"
 CM_FILE="$CM_NAME.yaml"
 
@@ -36,10 +37,13 @@ jq '
   )
 ' "$TMP_JSON" > "$FIXED_JSON"
 
-echo "Escaping Helm template delimiters..."
-sed 's/{{/{{"{{"}}/g' "$FIXED_JSON" > "$ESCAPED_JSON.tmp"
-sed 's/}}/{{"}}"}}/g' "$ESCAPED_JSON.tmp" > "$ESCAPED_JSON"
-rm -f "$ESCAPED_JSON.tmp"
+echo "Replacing Grafana template delimiters with placeholders..."
+# Step 1: replace {{ and }} with neutral placeholders
+sed 's/{{/__GRAFANA_LBRACE__/g; s/}}/__GRAFANA_RBRACE__/g' "$FIXED_JSON" > "$PLACE_JSON"
+
+echo "Converting placeholders to Helm-safe expressions..."
+# Step 2: turn placeholders into Helm expressions that output literal {{ and }}
+sed 's/__GRAFANA_LBRACE__/{{ "{{" }}/g; s/__GRAFANA_RBRACE__/{{ "}}" }}/g' "$PLACE_JSON" > "$ESCAPED_JSON"
 
 echo "Generating ConfigMap $CM_FILE..."
 cat > "helm/templates/$CM_FILE" <<EOF
@@ -55,6 +59,6 @@ $(sed 's/^/    /' "$ESCAPED_JSON")
 EOF
 
 echo "Cleaning up temporary files..."
-rm -f "$TMP_JSON" "$FIXED_JSON" "${ESCAPED_JSON}"
+rm -f "$TMP_JSON" "$FIXED_JSON" "$PLACE_JSON" "$ESCAPED_JSON"
 
-echo "Done. ConfigMap written to $CM_FILE"
+echo "Done. ConfigMap written to helm/templates/$CM_FILE"
