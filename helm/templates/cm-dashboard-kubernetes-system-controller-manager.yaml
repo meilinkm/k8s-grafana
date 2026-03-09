@@ -1,9 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: {{ .Release.Name }}-dashboard-kubernetes-system-controller-manager
-  labels:
-    grafana_dashboard: "1"
-data:
-  dashboard.json: |
-{{ .Files.Get "files/dashboards/dashboard-kubernetes-system-controller-manager.json" | indent 4 }}
