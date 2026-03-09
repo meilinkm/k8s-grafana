@@ -6,4 +6,4 @@ metadata:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-{{ tpl ( .Files.Get "templates/dashboards/dashboard-kubernetes-system-api-server.json" ) . | indent 4 }}
+{{ tpl ( .Files.Get "dashboards/dashboard-kubernetes-system-api-server.json" ) . | indent 4 }}

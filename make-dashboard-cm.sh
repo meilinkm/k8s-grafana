@@ -17,11 +17,10 @@ if [ -z "$ID" ] || [ -z "$DS_NAME" ] || [ -z "$NAME" ]; then
   exit 1
 fi
 
-# Output directories (two levels down)
-JSON_DIR="helm/templates/dashboards"
+JSON_DIR="helm/dashboards"
 CM_DIR="helm/templates"
 
-mkdir -p "$JSON_DIR"
+mkdir -p "$JSON_DIR" "$CM_DIR"
 
 TMP_JSON="dashboard-$ID.json"
 FINAL_JSON="$JSON_DIR/$NAME.json"
@@ -51,7 +50,7 @@ metadata:
     grafana_dashboard: "1"
 data:
   dashboard.json: |
-{{ tpl ( .Files.Get "templates/dashboards/$NAME.json" ) . | indent 4 }}
+{{ tpl ( .Files.Get "dashboards/$NAME.json" ) . | indent 4 }}
 EOF
 
 echo "Cleaning up temporary files..."
